@@ -41,12 +41,12 @@ const _getSearch = () => {
                 return acc+Number(value);
             }, 0);
             // return `kowaine: ${res}`
-            return Rx.Observable.combineLatest([request(sum)]).switchMap(([res1]) => {
-                return Rx.Observable.of(res1)
-            })
-            // return Rx.Observable.combineLatest([request(sum)]).map(([res1]) => {
-            //     return res1
+            // return Rx.Observable.combineLatest([request(sum)]).switchMap(([res1]) => {
+            //     return Rx.Observable.of(res1)
             // })
+            return Rx.Observable.combineLatest([request(sum)]).map(([res1]) => {
+                return res1
+            })
         })
     })
 }
@@ -60,8 +60,12 @@ const _getWirelessAddition = ([res1,res2,res3]) => {
         request(res1+res2),
         request(res2+res3),
         request(res3+res1)
-    ]).switchMap(([res4,res5,res6]) => {
-        return Observable.of([res4,res5,res6].join(','))
+    ])
+    // .switchMap(([res4,res5,res6]) => {
+    //     return Observable.of([res4,res5,res6].join(','))
+    // })
+    .map(([res4,res5,res6]) => {
+        return [res4,res5,res6].join(',')
     })
 }
 
