@@ -21,7 +21,7 @@ const request = function(param) {
 
 const render = () => {
     _getSearch().subscribe((res) => {
-        console.log(res);
+        console.log(`hi: ${res}`);
     })
 }
 
@@ -36,8 +36,17 @@ const _getSearch = () => {
     // })
     .switchMap(([res1,res2,res3]) => {
         // return [res1,res2,res3].join(',')
-        return _getAddition([res1,res2,res3]).map((res) => {
-            return `kowaine: ${res}`
+        return _getAddition([res1,res2,res3]).switchMap((res) => {
+            var sum = res.split(',').reduce((acc, value) => {
+                return acc+Number(value);
+            }, 0);
+            // return `kowaine: ${res}`
+            return Rx.Observable.combineLatest([request(sum)]).switchMap(([res1]) => {
+                return Rx.Observable.of(res1)
+            })
+            // return Rx.Observable.combineLatest([request(sum)]).map(([res1]) => {
+            //     return res1
+            // })
         })
     })
 }
@@ -47,15 +56,13 @@ const _getAddition = ([res1,res2,res3]) => {
 }
 
 const _getWirelessAddition = ([res1,res2,res3]) => {
-    return Rx.Observable.zip(
+    return Rx.Observable.combineLatest([
         request(res1+res2),
         request(res2+res3),
-        request(res3+res1),
-        (...resp) => {
-            [res4,res5,res6] = resp
-            return [res4,res5,res6].join(',')
-        }
-    )
+        request(res3+res1)
+    ]).switchMap(([res4,res5,res6]) => {
+        return Observable.of([res4,res5,res6].join(','))
+    })
 }
 
 render()
