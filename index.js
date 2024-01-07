@@ -5,6 +5,7 @@
 // require('rxjs/add/operator/combineLatest');
 const Rx = require('rxjs/Rx')
 const axios = require('axios');
+const {Observable} = require("rxjs");
 
 
 const request = function(param) {
@@ -18,29 +19,80 @@ const request = function(param) {
     })
 }
 
-const foo3 = Rx.Observable.combineLatest([
-    request('1'),
-    request('2'),
-    request('3'),
-]).subscribe(([res1,res2,res3]) => {
-    return Rx.Observable.combineLatest([
-        request(res1 * 2),
-        request(res2 * 2),
-        request(res3 * 2),
-    ])
-    .subscribe(([res4,res5,res6]) => {
-        console.log(`3res4: ${res4}`);
-        console.log(`3res5: ${res5}`);
-        console.log(`3res6: ${res6}`);
+const render = () => {
+    _getSearch().subscribe((res) => {
+        console.log(res);
     })
-})
+}
 
-console.log(foo3)
-setTimeout(() => {
-    foo3.unsubscribe();
-    console.log('3 구취')
-    console.log(foo3)
-}, 3000)
+const _getSearch = () => {
+    return Rx.Observable.combineLatest([
+        request(1),
+        request(2),
+        request(3),
+    ])
+    // .switchMap(([res1,res2,res3]) => {
+    //     return Observable.of({kungs: 'kungs'})
+    // })
+    .switchMap(([res1,res2,res3]) => {
+        // return [res1,res2,res3].join(',')
+        return _getAddition([res1,res2,res3]).map((res) => {
+            return `kowaine: ${res}`
+        })
+    })
+}
+
+const _getAddition = ([res1,res2,res3]) => {
+    return _getWirelessAddition([res1,res2,res3]);
+}
+
+const _getWirelessAddition = ([res1,res2,res3]) => {
+    return Rx.Observable.zip(
+        request(res1+res2),
+        request(res2+res3),
+        request(res3+res1),
+        (...resp) => {
+            [res4,res5,res6] = resp
+            return [res4,res5,res6].join(',')
+        }
+    )
+}
+
+render()
+
+
+// const foo3 = Rx.Observable.combineLatest([
+//     request('1'),
+//     request('2'),
+//     request('3'),
+// ]).subscribe(([res1,res2,res3]) => {
+//     console.log(`1: ${[res1,res2,res3].join(',')}`);
+//     return Rx.Observable.combineLatest([
+//         request(res1 * 2),
+//         request(res2 * 2),
+//         request(res3 * 2),
+//     ])
+//     .subscribe(([res4,res5,res6]) => {
+//         console.log(`2: ${[res4,res5,res6].join(',')}`);
+//
+//         return Rx.Observable.combineLatest([
+//             request(res4 * 2),
+//             request(res5 * 2),
+//             request(res6 * 2),
+//         ])
+//         .subscribe(([res7,res8,res9]) => {
+//             console.log(`3res7: ${res7}`);
+//             console.log(`3res8: ${res8}`);
+//             console.log(`3res9: ${res9}`);
+//         })
+//     })
+// })
+// console.log(foo3)
+// setTimeout(() => {
+//     foo3.unsubscribe();
+//     console.log('3 구취')
+//     console.log(foo3)
+// }, 3000)
 
 // const foo1 = Rx.Observable.combineLatest([
 //     request('1'),
